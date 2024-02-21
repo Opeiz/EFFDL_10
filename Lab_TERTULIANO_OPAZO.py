@@ -113,6 +113,7 @@ max_epochs = args.epochs
 best_acc = 0
 optimizer = optim.SGD(net.parameters(), lr=lr)
 alpha = args.alpha
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
 ## Save results
 results = []
@@ -151,7 +152,6 @@ def trainMX(epoch):
     total = 0
 
     for batch_idx, (inputs, targets) in enumerate(trainloader):
-    # for batch_idx, (inputs, targets) in enumerate(trainloader_subset):
         inputs, targets = inputs.to(device), targets.to(device)
 
         inputs, targets_a, targets_b, lam = mixup_data(inputs, targets, alpha, True)
@@ -243,6 +243,7 @@ for i in range(max_epochs):
     else:
         train(i)
     test(i)
+    scheduler.step()
 
 print(f"Best accuracy: {best_acc}")
 print(f"Number of parameters in the model: {contar_parametros(net)}")
