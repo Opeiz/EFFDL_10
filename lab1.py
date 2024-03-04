@@ -9,6 +9,7 @@ import argparse
 
 from torch.utils.data.dataloader import DataLoader
 from torchvision.datasets import CIFAR10
+from torchsummary import summary
 
 parser = argparse.ArgumentParser(description='Lab01 Training/Testing Model')
 parser.add_argument('--model', default='ResNet18', type=str, help='Options: ResNet18, PreActResNet18, DenseNet121, VGG19')
@@ -18,7 +19,7 @@ parser.add_argument('--epochs', default=5, type=int, help='Number of epochs')
 args = parser.parse_args()
 
 ## Test if there is GPU
-device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
 ## Normalization adapted for CIFAR10
@@ -171,8 +172,9 @@ for i in range(max_epochs):
 
 print(f"Best accuracy: {best_acc}")
 results.append(best_acc)
-print(f"Number of parameters in the model: {contar_parametros(net)}")
-params.append(contar_parametros(net))
+summary(net)
+print(f"Number of parameters in the model: {torch.numel(net)}")
+params.append(torch.numel(net))
 
 
 # ## Task 2 Just plotting the table

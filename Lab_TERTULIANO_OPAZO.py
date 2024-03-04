@@ -23,7 +23,7 @@ parser.add_argument('--mixup', action='store_true', help='Use Mixup or not')
 args = parser.parse_args()
 
 ## Test if there is GPU
-device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
 ## Data loading
