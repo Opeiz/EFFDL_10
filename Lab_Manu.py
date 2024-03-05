@@ -60,7 +60,7 @@ model.load_state_dict(loaded_cpt['net'])
 netBC = BC(model)
 netBC.model = netBC.model.to(device)
 ## Hyperparameters to set
-lr = 1e-4
+lr = 0.05
 criterion = nn.CrossEntropyLoss()
 max_epochs = 25
 best_acc = 0
@@ -92,7 +92,6 @@ def train(epoch):
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
         count+=1
-        print(count)
     train_losses.append(train_loss / len(trainloader))
     print(f"Train Loss: {train_loss/(batch_idx+1)}")
         
@@ -120,28 +119,25 @@ def test(epoch):
     test_losses.append(test_loss / len(testloader))
     print(f"Test Loss: {test_loss/(batch_idx+1)}")  
     acc = 100.*correct/total
-    if acc > best_acc:
-        best_acc = acc  
-'''
     # Save checkpoint.
     acc = 100.*correct/total
     if acc > best_acc:
         state = {
-            'net': net.state_dict(),
+            'net': netBC.model.state_dict(),
             'acc': acc,
             'epoch': epoch,
         }
-        pathckpt = f'./ckpts/ckpt_{args.model}.pth'
+        pathckpt = f'./ckpts/ckpt_PreActResNet18_[1111]_BN.pth'
         torch.save(state, pathckpt)
         best_acc = acc
-'''
+
 # Function to count the parameters in the model
 def contar_parametros(modelo):
     return sum(p.numel() for p in modelo.parameters() if p.requires_grad)
 
 start = time.time()
 
-for i in range(5):
+for i in range(max_epochs):
     train(i)
     test(i)
 
@@ -151,7 +147,7 @@ end = time.time()
 # print(f"\nTime to train the model: {(end-start)/60} minutes")
 
 with open('results_presentation.txt', 'a') as f:
-    f.write(f'\n{"PreActResNet18"}; {max_epochs}; {lr}; {best_acc}; {contar_parametros(netBC)}; {(end-start)/60}; {0}; {train_losses}; {test_losses}' )
+    f.write(f'\n{"PreActResNet18"}; {max_epochs}; {lr}; {best_acc}; {contar_parametros(netBC.model)}; {(end-start)/60}; {0}; {train_losses}; {test_losses}' )
 
 
 plt.plot(epochs, train_losses, label='Training Loss')
@@ -162,4 +158,3 @@ plt.ylabel('Loss')
 plt.legend()
 
 plt.savefig("images/loss_plot-awareQuantization.png")
-
