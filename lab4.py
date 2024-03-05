@@ -177,6 +177,13 @@ def test(epoch):
     # Save checkpoint.
     acc = 100.*correct/total
     if acc > best_acc:
+        state = {
+            'net': net.state_dict(),
+            'acc': acc,
+            'epoch': epoch,
+        }
+        pathckpt = f'./ckpts/ckpt_{args.model}_[1111]_{args.amount}_{args.epochs}.pth'
+        torch.save(state, pathckpt)
         best_acc = acc
 
 start = time.time()
