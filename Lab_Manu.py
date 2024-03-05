@@ -95,7 +95,6 @@ def train(epoch):
     train_losses.append(train_loss / len(trainloader))
     print(f"Train Loss: {train_loss/(batch_idx+1)}")
         
-
 # Testing the model
 def test(epoch):
     
