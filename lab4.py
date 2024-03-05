@@ -81,28 +81,23 @@ from model_cifar100 import *
 
 ## We can use the function contar_parametros to count the number of parameters in the model
 def contar_parametros(modelo):
-    return sum(p.numel() for p in modelo.parameters())
+    return sum(p.numel() for p in modelo.parameters() if p.requires_grad)
 
 print("\n== Builind the model ==")
 
 net = PreActResNet18()
 net = net.to(device)
 
-# Flatten all weights into a single vector
-all_weights = torch.cat([p.flatten() for p in net.parameters()])
+net = net.half()
 
-# Compute the threshold
+# Flatten all weights into a single vector
+all_weights = torch.cat([p.flatten().float() for p in net.parameters()])
+
 threshold = torch.quantile(all_weights.abs(), args.amount)
 print(threshold)
 
-# Apply global pruning
 for name, module in net.named_modules():
     if isinstance(module, nn.Conv2d):
-        # Use a custom pruning function that prunes weights below the threshold
-        prune.custom_from_mask(module, name="weight", mask=module.weight.abs() > threshold)
-        prune.remove(module, name="weight")
-    if isinstance(module, nn.Conv2d):
-        # Use a custom pruning function that prunes weights below the threshold
         prune.custom_from_mask(module, name="weight", mask=module.weight.abs() > threshold)
         prune.remove(module, name="weight")
 
@@ -140,6 +135,7 @@ def train(epoch):
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
+        inputs = inputs.half()  ## Quantization of the inputs
         outputs = net(inputs)
         loss = criterion(outputs, targets)
         loss.backward()
@@ -166,6 +162,7 @@ def test(epoch):
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
+            inputs = inputs.half()  ## Quantization of the inputs
             outputs = net(inputs)
             loss = criterion(outputs, targets)
 
@@ -180,13 +177,6 @@ def test(epoch):
     # Save checkpoint.
     acc = 100.*correct/total
     if acc > best_acc:
-        state = {
-            'net': net.state_dict(),
-            'acc': acc,
-            'epoch': epoch,
-        }
-        pathckpt = f'./ckpts/ckpt_{args.model}.pth'
-        torch.save(state, pathckpt)
         best_acc = acc
 
 start = time.time()

@@ -95,7 +95,7 @@ class PreActResNet(nn.Module):
 
 
 def PreActResNet18():
-    return PreActResNet(PreActBlock, [2,2,2,2])
+    return PreActResNet(PreActBlock, [1,1,1,1])
 
 def PreActResNet34():
     return PreActResNet(PreActBlock, [3,4,6,3])

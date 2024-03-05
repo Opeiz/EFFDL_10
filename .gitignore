@@ -1,6 +1,5 @@
 # .gitignore
 
-# Ignore ckpts directory
 # Ignore data directory
 data/
 

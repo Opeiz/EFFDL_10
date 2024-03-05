@@ -15,7 +15,7 @@ from torch.autograd import Variable
 ## Argument parser
 parser = argparse.ArgumentParser(description='Lab EFFDL')
 parser.add_argument('--model', default='PreActResNet18', type=str, help='Options: ResNet18, PreActResNet18, DenseNet121, VGG19')
-parser.add_argument('--lr', default=0.001, type=float, help='Learning rate')
+parser.add_argument('--lr', default=0.05, type=float, help='Learning rate')
 parser.add_argument('--epochs', default=5, type=int, help='Number of epochs')
 parser.add_argument('--alpha', default=1.0, type=float, help='Alpha value for Mixup')
 parser.add_argument('--dataaug', action='store_true', help='Use data augmentation or not')
