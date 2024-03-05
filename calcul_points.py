@@ -3,8 +3,13 @@ import torch
 import torch.nn as nn
 #import resnet
 from model_cifar100 import *
+import argparse
 
-our_quant = 32
+parser = argparse.ArgumentParser(description='Lab EFFDL')
+parser.add_argument('--quantize', default=32, type=float, help='Quantize Scale')
+args = parser.parse_args()
+
+our_quant = args.quantize
 quant_factors={1:32,8:4,16:2,32:1}
 quant_factor= quant_factors[our_quant]
 sparsity=0.

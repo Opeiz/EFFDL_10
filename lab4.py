@@ -88,7 +88,7 @@ print("\n== Builind the model ==")
 net = PreActResNet18()
 net = net.to(device)
 
-net = net.half()
+# net = net.half()
 
 # Flatten all weights into a single vector
 all_weights = torch.cat([p.flatten().float() for p in net.parameters()])
@@ -135,7 +135,7 @@ def train(epoch):
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
-        inputs = inputs.half()  ## Quantization of the inputs
+        # inputs = inputs.half()  ## Quantization of the inputs
         outputs = net(inputs)
         loss = criterion(outputs, targets)
         loss.backward()
@@ -162,7 +162,7 @@ def test(epoch):
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
-            inputs = inputs.half()  ## Quantization of the inputs
+            # inputs = inputs.half()  ## Quantization of the inputs
             outputs = net(inputs)
             loss = criterion(outputs, targets)
 
