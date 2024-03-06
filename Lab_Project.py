@@ -49,7 +49,7 @@ normalize_scratch = transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.19
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
     transforms.RandomHorizontalFlip(),
-    transforms.ColorJitter(0.1, 0.1, 0.1),
+    # transforms.ColorJitter(0.1, 0.1, 0.1),
     transforms.ToTensor(),
     normalize_scratch,
 ])
@@ -85,6 +85,7 @@ print(f"Initial CIFAR10 dataset has {len(c10train)} samples")
 
 ## Example of usage of the models
 from model_cifar100 import *
+from model_cifar100.preact_resnet_factorized import PreActResNet18
 
 ## We can use the function contar_parametros to count the number of parameters in the model
 def sizeModel(modelo):
@@ -92,7 +93,8 @@ def sizeModel(modelo):
 
 print(f"\n== Builind the model ==")
 
-net = PreActResNet18()
+# net = PreActResNet18A()
+net = PreActResNet18(1)
 net = net.to(device)
 
 ## Hyperparameters to set
@@ -204,6 +206,7 @@ for epoch in range(max_epochs):
     test(epoch)
     scheduler.step()
 
+pruned_size = 0
 if args.prune:
 
     # Modules to prune
@@ -253,11 +256,11 @@ if args.prune:
         if isinstance(module, nn.Conv2d):
             prune.remove(module, name="weight")
 
-
 end = time.time()
 
 print(f"\nBest accuracy : {best_acc}")
 print(f"Number of parameter END: {sizeModel(net)}")
 
 with open('project_results.txt', 'a') as f:
-    f.write(f'\n{args.model}; {max_epochs}; {lr}; {best_acc}; {pruned_size}; {prune_type};{args.prune_ratio/100}; {(end-start)/60}; {args.amount}; {train_losses}; {test_losses},{accuracies}' )
+    f.write(f'\{net.__class__.__name__}; {max_epochs}; {lr}; {best_acc};{sizeModel(net)}; {pruned_size}; {prune_type};{args.prune_ratio/100}; {(end-start)/60}; {train_losses}; {test_losses},{accuracies}' )
+     
