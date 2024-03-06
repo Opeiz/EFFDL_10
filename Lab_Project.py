@@ -263,4 +263,3 @@ print(f"Number of parameter END: {sizeModel(net)}")
 
 with open('project_results.txt', 'a') as f:
     f.write(f'\{net.__class__.__name__}; {max_epochs}; {lr}; {best_acc};{sizeModel(net)}; {pruned_size}; {prune_type};{args.prune_ratio/100}; {(end-start)/60}; {train_losses}; {test_losses},{accuracies}' )
-     
