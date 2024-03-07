@@ -1,2 +1,1 @@
-Model;Epochs;Learning Rate;Accuracy;Parameters;Prune Size;Prune Type;Prune Ratio[%];Time[min];Train Losses;Test Losses;Accuracies;\PreActResNet
-PreActResNet; 1; 0.05; 47.38;4946596; 0; None;0.3; 0.9107489466667176; [1.5132288823353504]; [1.8906058421531045],[47.38]
+Model;Epochs;Learning Rate;Accuracy;Parameters;Prune Size;Prune Type;Prune Ratio[%];Time[min];Train Losses;Test Losses;Accuracies; batch_size

@@ -36,6 +36,9 @@ parser.add_argument('--fine_tuning', action='store_true', help='Use fine tuning 
 parser.add_argument('--custom_prune', action='store_true', help='Use custom pruning or not')
 parser.add_argument('--structured', action='store_true', help='Use structured pruning or not')
 
+# Data Augmentation
+parser.add_argument('--da', action='store_true', help='Use data augmentation or not')
+
 args = parser.parse_args()
 
 ## Test if there is GPU
@@ -46,13 +49,25 @@ print(f"Using : ", device , "\n")
 ## Normalization adapted for CIFAR10
 normalize_scratch = transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 
-transform_train = transforms.Compose([
-    transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
-    # transforms.ColorJitter(0.1, 0.1, 0.1),
-    transforms.ToTensor(),
-    normalize_scratch,
-])
+if args.da:
+
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ColorJitter(0.1, 0.1, 0.1),
+        # transforms.RandomRotation(60),
+        transforms.ToTensor(),
+        transforms.RandomErasing(p=0.2),
+        normalize_scratch,
+    ])
+else:
+
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        normalize_scratch,
+    ])
 
 transform_test = transforms.Compose([
     transforms.ToTensor(),
@@ -65,8 +80,9 @@ rootdir = './data/cifar10'
 c10train = CIFAR10(rootdir,train=True,download=True,transform=transform_train)
 c10test = CIFAR10(rootdir,train=False,download=True,transform=transform_test)
 
-trainloader = DataLoader(c10train,batch_size=32,shuffle=True)
-testloader = DataLoader(c10test,batch_size=32)
+batch_size = 32
+trainloader = DataLoader(c10train,batch_size=batch_size,shuffle=True)
+testloader = DataLoader(c10test,batch_size=batch_size)
 
 
 ## number of target samples for the final dataset
@@ -262,4 +278,4 @@ print(f"\nBest accuracy : {best_acc}")
 print(f"Number of parameter END: {sizeModel(net)}")
 
 with open('project_results.txt', 'a') as f:
-    f.write(f'\{net.__class__.__name__}; {max_epochs}; {lr}; {best_acc};{sizeModel(net)}; {pruned_size}; {prune_type};{args.prune_ratio/100}; {(end-start)/60}; {train_losses}; {test_losses},{accuracies}' )
+    f.write(f'\{net.__class__.__name__}; {max_epochs}; {lr}; {best_acc};{sizeModel(net)}; {pruned_size}; {prune_type};{args.prune_ratio/100}; {(end-start)/60}; {train_losses}; {test_losses},{accuracies}, {batch_size}' )
