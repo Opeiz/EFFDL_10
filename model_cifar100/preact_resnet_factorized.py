@@ -123,7 +123,7 @@ class PreActResNet(nn.Module):
         return out
 
 
-def PreActResNet18(fact_level):
+def PreActResNet18_fact(fact_level):
     PreActBlock.set_factorization_level(fact_level=fact_level)
     return PreActResNet(PreActBlock, [1,1,1,1])
 

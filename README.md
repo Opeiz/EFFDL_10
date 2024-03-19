@@ -28,29 +28,38 @@ options:
   --MixUp MIXUP      [Bool] Use MixUp or not
 ```
 
+## Long Project results
 
-## Lab 01 Training and Testing
+Our approach for the long project of Efficient Deep Learning it is based in the [Lab file](Lab_Project.py) where is the base code for the training and testing of the model we choose to implemente "PreActResNet18()". 
 
-The goal of this lab is the first approach to the Training and Testing code for different models. The main is the [lab1](/lab1.py) and is coded with some arguments, the usage is the following\
-```
-python lab1.py [-h] [--model MODEL] [--lr LR] [--epochs EPOCHS]
-``` 
-```
-usage: lab1.py [-h] [--model MODEL] [--lr LR] [--epochs EPOCHS]
-
-Lab01 Training/Testing Model
-
-options:
-  -h, --help       show this help message and exit
-  --model MODEL    Options: ResNet18, PreActResNet18, DenseNet121, VGG19
-  --lr LR          Learning rate
-  --epochs EPOCHS  Number of epochs
-```
-
-## Lab 02 Data Augmentation
-
-The goal of the lab 2 is to play with different type of transforms for data augmentation (DA). The main is the [lab2](/lab2.py)
+### How to Use
 
 ```
-python lab2.py
-``` 
+usage: Lab_Project.py [-h] [--lr LR] [--epochs EPOCHS] [--epochs_fine EPOCHS_FINE] [--batch BATCH] [--half] [--prune] [--prune_ratio PRUNE_RATIO] [--fine_tuning] [--custom_prune] [--structured] [--da] [--factorized]
+```
+
+```
+Project EFFDL
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --lr LR               Learning rate
+  --epochs EPOCHS       Number of epochs
+  --epochs_fine EPOCHS_FINE
+                        Number of epochs for fine tuning
+  --batch BATCH         Batch size
+  --half                Use half precision or not
+  --prune               Prune the model or not
+  --prune_ratio PRUNE_RATIO
+                        Amount for Pruning
+  --fine_tuning         Use fine tuning or not
+  --custom_prune        Use custom pruning or not
+  --structured          Use structured pruning or not
+  --da                  Use data augmentation or not
+  --factorized          Model to use
+```
+
+### Plot the results
+
+For the results we implement a .txt file that we will read will pandas to see it as a .csv table. The code is [HERE](pandas.ipynb)
+

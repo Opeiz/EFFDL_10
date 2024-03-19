@@ -94,7 +94,7 @@ class PreActResNet(nn.Module):
         return out
 
 
-def PreActResNet18A(): #modifing the name to avoid confusion with the other file factorized
+def PreActResNet18(): #modifing the name to avoid confusion with the other file factorized
     return PreActResNet(PreActBlock, [1,1,1,1])
 
 def PreActResNet34():

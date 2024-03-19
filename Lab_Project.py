@@ -25,6 +25,7 @@ parser = argparse.ArgumentParser(description='Project EFFDL')
 parser.add_argument('--lr', default=0.05, type=float, help='Learning rate')
 parser.add_argument('--epochs', default=5, type=int, help='Number of epochs')
 parser.add_argument('--epochs_fine', default=3, type=int, help='Number of epochs for fine tuning')
+parser.add_argument('--batch', default=32, type=int, help='Batch size')
 
 # Quantize arguments
 parser.add_argument('--half', action='store_true', help='Use half precision or not')
@@ -39,8 +40,12 @@ parser.add_argument('--structured', action='store_true', help='Use structured pr
 # Data Augmentation
 parser.add_argument('--da', action='store_true', help='Use data augmentation or not')
 
+# Model arguments
+parser.add_argument('--factorized', action='store_true', help='Model to use')
+
 args = parser.parse_args()
 
+# =================================================================================================
 ## Test if there is GPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using : ", device , "\n")
@@ -80,7 +85,7 @@ rootdir = './data/cifar10'
 c10train = CIFAR10(rootdir,train=True,download=True,transform=transform_train)
 c10test = CIFAR10(rootdir,train=False,download=True,transform=transform_test)
 
-batch_size = 32
+batch_size = args.batch
 trainloader = DataLoader(c10train,batch_size=batch_size,shuffle=True)
 testloader = DataLoader(c10test,batch_size=batch_size)
 
@@ -101,7 +106,7 @@ print(f"Initial CIFAR10 dataset has {len(c10train)} samples")
 
 ## Example of usage of the models
 from model_cifar100 import *
-from model_cifar100.preact_resnet_factorized import PreActResNet18
+from model_cifar100.preact_resnet_factorized import PreActResNet18_fact
 
 ## We can use the function contar_parametros to count the number of parameters in the model
 def sizeModel(modelo):
@@ -109,8 +114,10 @@ def sizeModel(modelo):
 
 print(f"\n== Builind the model ==")
 
-# net = PreActResNet18A()
-net = PreActResNet18(1)
+if args.factorized:
+    net = PreActResNet18_fact(1)
+else:
+    net = PreActResNet18()
 net = net.to(device)
 
 ## Hyperparameters to set
@@ -208,8 +215,11 @@ def test(epoch):
             'optimizer': optimizer,
             'scheduler': scheduler
         }
-        # pathckpt = f'./ckpts/ckpt_{args.model}_[1111]_{args.amount}_{args.epochs}.pth'
-        # torch.save(state, pathckpt)
+        if args.factorized:
+            pathckpt = f'./ckpts/project/ckpt_fact_Epochs={args.epochs}_Da={args.da}_Half={args.half}.pth'
+        else:
+            pathckpt = f'./ckpts/project/ckpt_Epochs={args.epochs}_Da={args.da}_Half={args.half}.pth'
+        torch.save(state, pathckpt)
 
         best_acc = acc
     
@@ -247,8 +257,7 @@ if args.prune:
         print(f"\n ==> Structured Pruning")
         for module in to_prune:
             prune.ln_unstructured(module, name="weight", amount=args.prune_ratio/100, dim=1)
-
-    if args.unstructured:
+    else:
         prune_type = "unstructured"
         print(f"\n ==> Unstructured Pruning")
         for module in to_prune:
@@ -278,4 +287,18 @@ print(f"\nBest accuracy : {best_acc}")
 print(f"Number of parameter END: {sizeModel(net)}")
 
 with open('project_results.txt', 'a') as f:
-    f.write(f'\{net.__class__.__name__}; {max_epochs}; {lr}; {best_acc};{sizeModel(net)}; {pruned_size}; {prune_type};{args.prune_ratio/100}; {(end-start)/60}; {train_losses}; {test_losses},{accuracies}, {batch_size}' )
+    f.write(f'\n{net.__class__.__name__}; 
+            {max_epochs}; 
+            {lr}; 
+            {best_acc};
+            {sizeModel(net)};
+            {args.half};
+            {args.da};
+            {pruned_size}; 
+            {prune_type};
+            {args.prune_ratio/100}; 
+            {(end-start)/60}; 
+            {train_losses}; 
+            {test_losses};
+            {accuracies}; 
+            {batch_size}' )
