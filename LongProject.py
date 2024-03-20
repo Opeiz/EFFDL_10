@@ -27,8 +27,8 @@ parser.add_argument('--epochs', default=5, type=int, help='Number of epochs')
 parser.add_argument('--epochs_fine', default=3, type=int, help='Number of epochs for fine tuning')
 parser.add_argument('--batch', default=32, type=int, help='Batch size')
 
-# Quantize arguments
-parser.add_argument('--half', action='store_true', help='Use half precision or not')
+# Data Augmentation
+parser.add_argument('--da', action='store_true', help='Use data augmentation or not')
 
 # Pruning arguments
 parser.add_argument('--prune', action='store_true', help='Prune the model or not')
@@ -37,11 +37,15 @@ parser.add_argument('--fine_tuning', action='store_true', help='Use fine tuning 
 parser.add_argument('--custom_prune', action='store_true', help='Use custom pruning or not')
 parser.add_argument('--structured', action='store_true', help='Use structured pruning or not')
 
-# Data Augmentation
-parser.add_argument('--da', action='store_true', help='Use data augmentation or not')
+# Quantize arguments
+parser.add_argument('--half', action='store_true', help='Use half precision or not')
 
 # Model arguments
 parser.add_argument('--factorized', action='store_true', help='Model to use')
+parser.add_argument('--factor', default=1, type=int, help='Factor for the factorized model')
+
+# Checkpoint arguments
+parser.add_argument("--ckpt", default=None, type=str, help="Path to the checkpoint")
 
 args = parser.parse_args()
 
@@ -64,7 +68,7 @@ if args.da:
         transforms.ToTensor(),
         transforms.RandomErasing(p=0.2),
         normalize_scratch,
-    ])
+    ]) 
 else:
 
     transform_train = transforms.Compose([
@@ -115,7 +119,7 @@ def sizeModel(modelo):
 print(f"\n== Builind the model ==")
 
 if args.factorized:
-    net = PreActResNet18_fact(1)
+    net = PreActResNet18_fact(args.factor)
 else:
     net = PreActResNet18()
 net = net.to(device)
@@ -125,7 +129,7 @@ lr = args.lr
 criterion = nn.CrossEntropyLoss()
 max_epochs = args.epochs
 best_acc = 0
-optimizer = optim.SGD(net.parameters(), lr=lr)
+optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
 if args.half:
@@ -227,12 +231,26 @@ def test(epoch):
 
 start = time.time()
 
-for epoch in range(max_epochs):
-    train(epoch)
-    test(epoch)
-    scheduler.step()
+if args.ckpt:
+    print("==> Loading checkpoint")
+    assert os.path.isdir('ckpts'), 'Error: no checkpoint directory found!'
+
+    checkpoint = torch.load(args.ckpt)
+    net.load_state_dict(checkpoint['net'])
+    
+    best_acc = checkpoint['acc']
+    optimizer = checkpoint['optimizer']
+    scheduler = checkpoint['scheduler']
+    lr = checkpoint['lr']
+
+else:
+    for epoch in range(max_epochs):
+        train(epoch)
+        test(epoch)
+        scheduler.step()
 
 pruned_size = 0
+prune_type = None
 if args.prune:
 
     # Modules to prune
@@ -257,6 +275,7 @@ if args.prune:
         print(f"\n ==> Structured Pruning")
         for module in to_prune:
             prune.ln_unstructured(module, name="weight", amount=args.prune_ratio/100, dim=1)
+   
     else:
         prune_type = "unstructured"
         print(f"\n ==> Unstructured Pruning")
@@ -284,21 +303,21 @@ if args.prune:
 end = time.time()
 
 print(f"\nBest accuracy : {best_acc}")
-print(f"Number of parameter END: {sizeModel(net)}")
+# print(f"Number of parameter END: {sizeModel(net)}")
 
 with open('project_results.txt', 'a') as f:
-    f.write(f'\n{net.__class__.__name__}; 
-            {max_epochs}; 
-            {lr}; 
-            {best_acc};
-            {sizeModel(net)};
-            {args.half};
-            {args.da};
-            {pruned_size}; 
-            {prune_type};
-            {args.prune_ratio/100}; 
-            {(end-start)/60}; 
-            {train_losses}; 
-            {test_losses};
-            {accuracies}; 
-            {batch_size}' )
+    f.write(f'\n{net.__class__.__name__}; \
+            {max_epochs}; \
+            {lr}; \
+            {best_acc}; \
+            {sizeModel(net)}; \
+            {args.half}; \
+            {args.da}; \
+            {pruned_size}; \
+            {prune_type}; \
+            {args.prune_ratio/100}; \
+            {(end-start)/60}; \
+            {train_losses}; \
+            {test_losses}; \
+            {accuracies}; \
+            {batch_size}')
