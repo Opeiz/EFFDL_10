@@ -6,7 +6,7 @@ import torch.optim as optim
 from torch import nn
 import torch.nn.functional as F
 import torch.nn.utils.prune as prune
-#import torchinfo
+import torchinfo
 
 import os
 import argparse
@@ -48,7 +48,7 @@ parser.add_argument('--factor', default=1, type=int, help='Factor for the factor
 
 # Checkpoint arguments
 parser.add_argument("--ckpt", default=None, type=str, help="Path to the checkpoint")
-
+parser.add_argument("--ckptname", default=None, type=str, help="Name of the checkpoint")
 args = parser.parse_args()
 
 # =================================================================================================
@@ -114,6 +114,7 @@ def sizeModel(modelo):
     return torchinfo.summary(modelo, verbose=0).total_params
 
 print(f"\n== Builind the model ==")
+
 if args.factorized:
     net = PreActResNet18_fact(args.factor)
 else:
@@ -127,11 +128,7 @@ max_epochs = args.epochs
 best_acc = 0
 optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
-"""
-if args.half:
-    net = net.half()
-    criterion = criterion.half()
-"""
+
 if args.half:
     halfquantizing(net,args.ckpt,criterion,max_epochs,best_acc,testloader,device)
 if args.binnary:
@@ -222,7 +219,9 @@ def test(epoch):
             'optimizer': optimizer,
             'scheduler': scheduler
         }
+
         pathckpt = f'./ckpts/project/{args.ckptname}.pth'
+        torch.save(state, pathckpt)
 
         best_acc = acc
     
@@ -320,3 +319,6 @@ with open('project_results.txt', 'a') as f:
             {test_losses}; \
             {accuracies}; \
             {batch_size}')
+    
+print(f"Time : {(end-start)/60} ")
+print(f"==> Finished")
