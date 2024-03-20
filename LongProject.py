@@ -303,22 +303,14 @@ end = time.time()
 print(f"\nBest accuracy : {best_acc}")
 # print(f"Number of parameter END: {sizeModel(net)}")
 
+quantize = "None"
+if args.half:
+    quantize = "half"
+if args.binnary:
+    quantize = "binnary"
+
 with open('project_results.txt', 'a') as f:
-    f.write(f'\n{net.__class__.__name__}; \
-            {max_epochs}; \
-            {lr}; \
-            {best_acc}; \
-            {sizeModel(net)}; \
-            {args.half}; \
-            {args.da}; \
-            {pruned_size}; \
-            {prune_type}; \
-            {args.prune_ratio/100}; \
-            {(end-start)/60}; \
-            {train_losses}; \
-            {test_losses}; \
-            {accuracies}; \
-            {batch_size}')
+    f.write(f'\n{net.__class__.__name__};{max_epochs};{lr};{best_acc};{sizeModel(net)};{args.factorized};{quantize};{args.da};{pruned_size};{prune_type};{args.prune_ratio/100};{(end-start)/60};{train_losses};{test_losses};{accuracies};{batch_size}')
     
 print(f"Time : {(end-start)/60} ")
 print(f"==> Finished")
