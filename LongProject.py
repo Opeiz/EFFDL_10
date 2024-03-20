@@ -6,7 +6,7 @@ import torch.optim as optim
 from torch import nn
 import torch.nn.functional as F
 import torch.nn.utils.prune as prune
-#import torchinfo
+import torchinfo
 
 import os
 import argparse
@@ -133,12 +133,12 @@ if args.half:
     criterion = criterion.half()
 """
 if args.half:
-    halfquantizing(net,args.ckpt,criterion,max_epochs,best_acc,testloader,device)
+    train_losses,test_losses = halfquantizing(net,args.ckpt,criterion,max_epochs,best_acc,testloader,device)
 if args.binnary:
     if args.factorized:
-        binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,args.factor)
+        train_losses,test_losses = binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,args.factor)
     else:
-        binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,0)
+        train_losses,test_losses = binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,0)
 prune_type = "None"
 
 ## Save results
