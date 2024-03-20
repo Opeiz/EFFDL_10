@@ -274,7 +274,7 @@ if args.prune:
         prune_type = "structured"
         print(f"\n ==> Structured Pruning")
         for module in to_prune:
-            prune.ln_unstructured(module, name="weight", amount=args.prune_ratio/100, dim=1)
+            prune.ln_structured(module, name="weight", amount=args.prune_ratio/100, dim=1)
    
     else:
         prune_type = "unstructured"

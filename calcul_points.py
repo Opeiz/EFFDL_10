@@ -38,7 +38,6 @@ def count_conv2d(m, x, y):
     # incase same conv is used multiple times
     m.total_ops += torch.Tensor([int(total_ops)])
 
-
 def count_bn2d(m, x, y):
     x = x[0] # remove tuple
 
@@ -52,7 +51,6 @@ def count_bn2d(m, x, y):
     print("{:<10}: S_c={:<4}, F_in={:<4}, F_out={:<4}, P={:<5}, params={:<10}, operations={:<20}".format("Batch norm",'x',x.size(1),'x',x.size()[2:].numel(),int(m.total_params.item()),int(total_ops)))
     # print("Batch norm: F_in={} P={}, params={}, operations={}".format(x.size(1),x.size()[2:].numel(),int(m.total_params.item()),int(total_ops)))
 
-
 def count_relu(m, x, y):
     x = x[0]
 
@@ -61,8 +59,6 @@ def count_relu(m, x, y):
 
     m.total_ops += torch.Tensor([int(total_ops)])
     print("ReLU: F_in={} P={}, params={}, operations={}".format(x.size(1),x.size()[2:].numel(),0,int(total_ops)))
-
-
 
 def count_avgpool(m, x, y):
     x = x[0]
