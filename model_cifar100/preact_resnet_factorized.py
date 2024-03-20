@@ -9,7 +9,7 @@ class PreActBlock(nn.Module):
     '''Pre-activation version of the BasicBlock.'''
     expansion = 1
     @classmethod
-    def set_factorization_level(cls,fact_level = 1):
+    def set_factorization_level(cls,fact_level = 0):
         cls.fact_level = fact_level
     def __init__(self, in_planes, planes, stride=1):
         super(PreActBlock, self).__init__()

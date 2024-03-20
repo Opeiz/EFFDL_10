@@ -133,7 +133,7 @@ if args.half:
     criterion = criterion.half()
 """
 if args.half:
-    train_losses,test_losses = halfquantizing(net,args.ckpt,criterion,max_epochs,best_acc,testloader,device)
+    train_losses,test_losses =halfquantizing(net,args.ckpt,criterion,max_epochs,best_acc,testloader,device)
 if args.binnary:
     if args.factorized:
         train_losses,test_losses = binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,args.factor)
