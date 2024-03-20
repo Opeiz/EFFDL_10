@@ -6,7 +6,7 @@ import torch.optim as optim
 from torch import nn
 import torch.nn.functional as F
 import torch.nn.utils.prune as prune
-import torchinfo
+#import torchinfo
 
 import os
 import argparse
@@ -15,6 +15,7 @@ import time
 from torch.utils.data.dataloader import DataLoader
 from torchvision.datasets import CIFAR10
 from torch.autograd import Variable
+from quantizing import *
 
 from binnaryconnect import BC
 
@@ -39,13 +40,14 @@ parser.add_argument('--structured', action='store_true', help='Use structured pr
 
 # Quantize arguments
 parser.add_argument('--half', action='store_true', help='Use half precision or not')
+parser.add_argument('--binnary', action='store_true', help='Binnary Aware Quantization')
 
 # Model arguments
 parser.add_argument('--factorized', action='store_true', help='Model to use')
 parser.add_argument('--factor', default=1, type=int, help='Factor for the factorized model')
 
 # Checkpoint arguments
-parser.add_argument("--ckpt", default=None, type=str, help="Path to the checkpoint")
+parser.add_argument("--ckpt", default="ckpts/tests/ckpt_PreActResNet18_[1111]_0.3_50.pth", type=str, help="Path to the checkpoint")
 
 args = parser.parse_args()
 
@@ -117,9 +119,10 @@ def sizeModel(modelo):
     return torchinfo.summary(modelo, verbose=0).total_params
 
 print(f"\n== Builind the model ==")
-
+flag = 0
 if args.factorized:
     net = PreActResNet18_fact(args.factor)
+    flag = 1
 else:
     net = PreActResNet18()
 net = net.to(device)
@@ -131,11 +134,18 @@ max_epochs = args.epochs
 best_acc = 0
 optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
-
+"""
 if args.half:
     net = net.half()
     criterion = criterion.half()
-
+"""
+if args.half:
+    halfquantizing(net,args.ckpt,criterion,max_epochs,best_acc,testloader,device)
+if args.binnary:
+    if args.factorized:
+        binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,args.factor)
+    else:
+        binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,0)
 prune_type = "None"
 
 ## Save results
@@ -220,7 +230,7 @@ def test(epoch):
             'scheduler': scheduler
         }
         if args.factorized:
-            pathckpt = f'./ckpts/project/ckpt_fact_Epochs={args.epochs}_Da={args.da}_Half={args.half}.pth'
+            pathckpt = f'./ckpts/project/ckpt_fact{args.factor}_Epochs={args.epochs}_Da={args.da}_Half={args.half}.pth'
         else:
             pathckpt = f'./ckpts/project/ckpt_Epochs={args.epochs}_Da={args.da}_Half={args.half}.pth'
         torch.save(state, pathckpt)

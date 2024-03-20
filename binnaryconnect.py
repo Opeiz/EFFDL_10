@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy
-
+"""
 class BC():
     def __init__(self, model):
 
@@ -85,5 +85,63 @@ class BC():
     def forward(self,x):
 
         ### This function is used so that the model can be used while training
+        out = self.model(x)
+        return out
+"""
+import torch
+import torch.nn as nn
+import numpy as np
+
+class BC():
+    def __init__(self, model):
+        count_targets = 0
+        for m in model.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+                count_targets += 1
+
+        start_range = 0
+        end_range = count_targets - 1
+        self.bin_range = np.linspace(start_range, end_range, end_range - start_range + 1).astype('int').tolist()
+
+        self.num_of_params = len(self.bin_range)
+        self.saved_params = []
+        self.target_modules = []
+
+        self.model = model
+
+        index = -1
+        for m in model.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+                index += 1
+                if index in self.bin_range:
+                    tmp = m.weight.data.clone()
+                    self.saved_params.append(tmp)
+                    self.target_modules.append(m.weight)
+
+    def save_params(self):
+        for index in range(self.num_of_params):
+            try:
+                self.saved_params[index].copy_(self.target_modules[index].data)
+            except AttributeError:
+                print("index ", index)
+                print(self.target_modules[index])
+            break
+
+    def binarization(self):
+        self.save_params()
+        for index in range(self.num_of_params):
+            binary_params = torch.where(self.saved_params[index] < 0, torch.tensor(-1.0), torch.tensor(1.0))
+            self.target_modules[index].data.copy_(binary_params)
+
+    def restore(self):
+        for index in range(self.num_of_params):
+            self.target_modules[index].data.copy_(self.saved_params[index])
+
+    def clip(self):
+        for index in range(self.num_of_params):
+            m = nn.Hardtanh(-1, 1)
+            self.target_modules[index].data.copy_(m(self.saved_params[index]))
+
+    def forward(self, x):
         out = self.model(x)
         return out
