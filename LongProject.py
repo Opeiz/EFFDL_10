@@ -46,7 +46,7 @@ parser.add_argument('--factor', default=1, type=int, help='Factor for the factor
 
 # Checkpoint arguments
 parser.add_argument("--ckpt", default=None, type=str, help="Path to the checkpoint")
-
+parser.add_argument("--ckptname", default=None, type=str, help="Name of the checkpoint")
 args = parser.parse_args()
 
 # =================================================================================================
@@ -93,16 +93,11 @@ batch_size = args.batch
 trainloader = DataLoader(c10train,batch_size=batch_size,shuffle=True)
 testloader = DataLoader(c10test,batch_size=batch_size)
 
-
-## number of target samples for the final dataset
-num_train_examples = len(c10train)
-num_samples_subset = 15000
-
 ## We set a seed manually so as to reproduce the results easily
 seed  = 2147483647
 
 ## Generate a list of shuffled indices ; with the fixed seed, the permutation will always be the same, for reproducibility
-indices = list(range(num_train_examples))
+indices = list(range(len(c10train)))
 np.random.RandomState(seed=seed).shuffle(indices)## modifies the list in place
 
 ## We define the Subset using the generated indices 
@@ -219,10 +214,8 @@ def test(epoch):
             'optimizer': optimizer,
             'scheduler': scheduler
         }
-        if args.factorized:
-            pathckpt = f'./ckpts/project/ckpt_fact_Epochs={args.epochs}_Da={args.da}_Half={args.half}.pth'
-        else:
-            pathckpt = f'./ckpts/project/ckpt_Epochs={args.epochs}_Da={args.da}_Half={args.half}.pth'
+
+        pathckpt = f'./ckpts/project/{args.ckptname}.pth'
         torch.save(state, pathckpt)
 
         best_acc = acc
