@@ -25,8 +25,8 @@ parser = argparse.ArgumentParser(description='Project EFFDL')
 # Classic arguments for the model
 parser.add_argument('--lr', default=0.05, type=float, help='Learning rate')
 parser.add_argument('--epochs', default=5, type=int, help='Number of epochs')
-parser.add_argument('--epochs_fine', default=3, type=int, help='Number of epochs for fine tuning')
-parser.add_argument('--batch', default=32, type=int, help='Batch size')
+parser.add_argument('--epochs_fine', default=5, type=int, help='Number of epochs for fine tuning')
+parser.add_argument('--batch', default=64, type=int, help='Batch size')
 
 # Data Augmentation
 parser.add_argument('--da', action='store_true', help='Use data augmentation or not')
@@ -35,8 +35,10 @@ parser.add_argument('--da', action='store_true', help='Use data augmentation or 
 parser.add_argument('--prune', action='store_true', help='Prune the model or not')
 parser.add_argument('--prune_ratio', default=30 , type=float, help='Amount for Pruning')
 parser.add_argument('--fine_tuning', action='store_true', help='Use fine tuning or not')
-parser.add_argument('--custom_prune', action='store_true', help='Use custom pruning or not')
+parser.add_argument('--custom', action='store_true', help='Use custom pruning or not')
 parser.add_argument('--structured', action='store_true', help='Use structured pruning or not')
+parser.add_argument('--unstructured', action='store_true', help='Use unstructured pruning or not')
+
 
 # Quantize arguments
 parser.add_argument('--half', action='store_true', help='Use half precision or not')
@@ -148,7 +150,7 @@ accuracies = []
 ## Training the model
 def train(epoch):
     
-    print('\n==> Epoch: %d' % epoch, '\t Best Accuracy: %.3f' % best_acc)
+    print('\n==> Epoch: %d' % epoch, '\t Best Accuracy: %.3f' % best_acc )
 
     net.train()
     train_loss = 0
@@ -174,6 +176,8 @@ def train(epoch):
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
+    acc = 100.*correct/total
+    print("Actual Accuracy: ", acc)
     train_losses.append(train_loss / len(trainloader))
     # print(f"Train Loss: {train_loss/(batch_idx+1)}")
 
@@ -231,7 +235,7 @@ start = time.time()
 
 if args.ckpt:
     print("==> Loading checkpoint")
-    assert os.path.isdir('ckpts'), 'Error: no checkpoint directory found!'
+    assert os.path.isdir('ckpts/project'), 'Error: no checkpoint directory found!'
 
     checkpoint = torch.load(args.ckpt)
     net.load_state_dict(checkpoint['net'])
@@ -257,7 +261,7 @@ if args.prune:
         if isinstance(module, nn.Conv2d) or isinstance(module, nn.Linear):
             to_prune.append(module)
 
-    if args.custom_prune:
+    if args.custom:
         prune_type = "custom"
         print(f"\n ==> Custom Pruning")
 
@@ -272,9 +276,9 @@ if args.prune:
         prune_type = "structured"
         print(f"\n ==> Structured Pruning")
         for module in to_prune:
-            prune.ln_structured(module, name="weight", amount=args.prune_ratio/100, dim=1)
+            prune.ln_structured(module, name="weight", amount=args.prune_ratio/100, dim=1, n=float('-inf'))
    
-    else:
+    if args.unstructured:
         prune_type = "unstructured"
         print(f"\n ==> Unstructured Pruning")
         for module in to_prune:
@@ -294,9 +298,12 @@ if args.prune:
 
     print(f"Accuracy after Pruning :",  acc )
 
-    for name, module in net.named_modules():
-        if isinstance(module, nn.Conv2d):
-            prune.remove(module, name="weight")
+    best_acc = max(accuracies)
+
+    if args.custom or args.structured or args.unstructured:
+        for name, module in net.named_modules():
+            if isinstance(module, nn.Conv2d):
+                prune.remove(module, name="weight")
 
 end = time.time()
 
