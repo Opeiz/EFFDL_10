@@ -130,14 +130,6 @@ max_epochs = args.epochs
 best_acc = 0
 optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
-
-if args.half:
-    halfquantizing(net,args.ckpt,criterion,max_epochs,best_acc,testloader,device)
-if args.binnary:
-    if args.factorized:
-        binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,args.factor)
-    else:
-        binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,0)
 prune_type = "None"
 
 ## Save results
@@ -251,6 +243,15 @@ else:
         test(epoch)
         scheduler.step()
 
+if args.half:
+    halfquantizing(net,args.ckpt,criterion,max_epochs,best_acc,testloader,device)
+if args.binnary:
+    if args.factorized:
+        binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,args.factor)
+    else:
+        binaryQuantizing(net,args.ckpt,criterion,max_epochs,optimizer,trainloader,testloader,device,0)
+
+
 pruned_size = 0
 prune_type = None
 if args.prune:
@@ -260,7 +261,7 @@ if args.prune:
     for name, module in net.named_modules():
         if isinstance(module, nn.Conv2d) or isinstance(module, nn.Linear):
             to_prune.append(module)
-
+    
     if args.custom:
         prune_type = "custom"
         print(f"\n ==> Custom Pruning")
@@ -284,7 +285,6 @@ if args.prune:
         for module in to_prune:
             prune.l1_unstructured(module, name="weight", amount=args.prune_ratio/100)
 
-    # Fine tuning
     if args.fine_tuning:
         print(f"\n ==> Fine tuning")
         for epoch in range(args.epochs_fine):
