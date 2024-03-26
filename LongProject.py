@@ -232,10 +232,12 @@ if args.ckpt:
     checkpoint = torch.load(args.ckpt)
     net.load_state_dict(checkpoint['net'])
     
-    # best_acc = checkpoint['acc']
-    # optimizer = checkpoint['optimizer']
-    # scheduler = checkpoint['scheduler']
-    # lr = checkpoint['lr']
+    best_acc = checkpoint['acc']
+    optimizer = checkpoint['optimizer']
+    scheduler = checkpoint['scheduler']
+    lr = checkpoint['lr']
+
+    net = net.to(device)
 
 else:
     for epoch in range(max_epochs):
@@ -303,18 +305,9 @@ if args.prune:
     for name, module in net.named_modules():
         if isinstance(module, nn.Conv2d) or isinstance(module, nn.Linear):
             prune.remove(module, name="weight")
-    
-    state = {
-        'net': net.state_dict(),
-        # 'acc': acc,
-        # 'epoch': max_epochs,
-        # 'lr': lr,
-        # 'optimizer': optimizer,
-        # 'scheduler': scheduler
-    }
 
-    pathckpt = f'./ckpts/project/{args.ckptname}.pth'
-    torch.save(state, pathckpt)
+        pathckpt = f'./ckpts/project/{args.ckptname}.pth'
+        torch.save(net.state_dict(), pathckpt)
 
 
 end = time.time()
