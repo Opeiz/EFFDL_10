@@ -38,7 +38,7 @@ parser.add_argument('--fine_tuning', action='store_true', help='Use fine tuning 
 parser.add_argument('--custom', action='store_true', help='Use custom pruning or not')
 parser.add_argument('--structured', action='store_true', help='Use structured pruning or not')
 parser.add_argument('--unstructured', action='store_true', help='Use unstructured pruning or not')
-
+parser.add_argument('--globalprune', action='store_true', help='Use global pruning or not')
 
 # Quantize arguments
 parser.add_argument('--half', action='store_true', help='Use half precision or not')
@@ -232,10 +232,10 @@ if args.ckpt:
     checkpoint = torch.load(args.ckpt)
     net.load_state_dict(checkpoint['net'])
     
-    best_acc = checkpoint['acc']
-    optimizer = checkpoint['optimizer']
-    scheduler = checkpoint['scheduler']
-    lr = checkpoint['lr']
+    # best_acc = checkpoint['acc']
+    # optimizer = checkpoint['optimizer']
+    # scheduler = checkpoint['scheduler']
+    # lr = checkpoint['lr']
 
 else:
     for epoch in range(max_epochs):
@@ -289,21 +289,33 @@ if args.prune:
         print(f"\n ==> Fine tuning")
         for epoch in range(args.epochs_fine):
             train(epoch)
+            test(epoch)
 
     pruned_size = sizeModel(net)
     print(f"Number of parameter in PRUNE: {pruned_size}")
     print(f"Pruned by :", args.prune_ratio/100, "%")
-
+    
     acc = test(0)
-
     print(f"Accuracy after Pruning :",  acc )
 
     best_acc = max(accuracies)
 
-    if args.custom or args.structured or args.unstructured:
-        for name, module in net.named_modules():
-            if isinstance(module, nn.Conv2d):
-                prune.remove(module, name="weight")
+    for name, module in net.named_modules():
+        if isinstance(module, nn.Conv2d) or isinstance(module, nn.Linear):
+            prune.remove(module, name="weight")
+    
+    state = {
+        'net': net.state_dict(),
+        # 'acc': acc,
+        # 'epoch': max_epochs,
+        # 'lr': lr,
+        # 'optimizer': optimizer,
+        # 'scheduler': scheduler
+    }
+
+    pathckpt = f'./ckpts/project/{args.ckptname}.pth'
+    torch.save(state, pathckpt)
+
 
 end = time.time()
 
