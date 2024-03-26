@@ -269,8 +269,8 @@ if args.prune:
         all_weights = torch.cat([p.flatten().float() for p in net.parameters()])
         threshold = torch.quantile(all_weights.abs(), args.prune_ratio/100)
 
-        mask = module.weight.abs() > threshold
         for module in to_prune:
+            mask = module.weight.abs() > threshold
             prune.custom_from_mask(module, name="weight", mask=mask)
 
     if args.structured:
