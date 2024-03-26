@@ -158,7 +158,7 @@ def main():
     model = PreActResNet18_fact(factorize)  # Assuming the model is PreActResNet18
 
     # Finally we can load the state_dict in order to load the trained parameters 
-    model.load_state_dict(loaded_cpt)
+    model.load_state_dict(loaded_cpt['net'])
 
     #model = resnet.ResNet18()
     #print(model)
