@@ -30,12 +30,12 @@ options:
 
 ## Long Project results
 
-Our approach for the long project of Efficient Deep Learning it is based in the [Lab file](Lab_Project.py) where is the base code for the training and testing of the model we choose to implemente "PreActResNet18()". 
+Our approach for the long project of Efficient Deep Learning it is based in the [Lab file](LongProject.py) where is the base code for the training and testing of the model we choose to implemente "PreActResNet18()". 
 
 ### How to Use
 
 ```
-usage: Lab_Project.py [-h] [--lr LR] [--epochs EPOCHS] [--epochs_fine EPOCHS_FINE] [--batch BATCH] [--half] [--prune] [--prune_ratio PRUNE_RATIO] [--fine_tuning] [--custom_prune] [--structured] [--da] [--factorized]
+usage: LongProject.py [-h] [--lr LR] [--epochs EPOCHS] [--epochs_fine EPOCHS_FINE] [--batch BATCH] [--da] [--prune] [--prune_ratio PRUNE_RATIO] [--fine_tuning] [--custom] [--structured] [--unstructured] [--globalprune] [--half] [--binnary] [--factorized] [--factor FACTOR] [--ckpt CKPT] [--ckptname CKPTNAME]
 ```
 
 ```
@@ -48,15 +48,21 @@ optional arguments:
   --epochs_fine EPOCHS_FINE
                         Number of epochs for fine tuning
   --batch BATCH         Batch size
-  --half                Use half precision or not
+  --da                  Use data augmentation or not
   --prune               Prune the model or not
   --prune_ratio PRUNE_RATIO
                         Amount for Pruning
   --fine_tuning         Use fine tuning or not
-  --custom_prune        Use custom pruning or not
+  --custom              Use custom pruning or not
   --structured          Use structured pruning or not
-  --da                  Use data augmentation or not
+  --unstructured        Use unstructured pruning or not
+  --globalprune         Use global pruning or not
+  --half                Use half precision or not
+  --binnary             Binnary Aware Quantization
   --factorized          Model to use
+  --factor FACTOR       Factor for the factorized model
+  --ckpt CKPT           Path to the checkpoint
+  --ckptname CKPTNAME   Name of the checkpoint
 ```
 
 ### Plot the results
